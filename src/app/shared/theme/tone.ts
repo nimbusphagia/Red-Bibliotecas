@@ -11,14 +11,8 @@ interface Box {
   label: string;
 }
 
-/**
- * Colores con significado (estado). No dependen del tono: se ven igual sobre
- * cualquier superficie.
- */
+/** Color de error (bordes y mensajes de campos). No depende del tono. */
 export const status = {
-  success: { text: 'text-success', bg: 'bg-success' },
-  info: { text: 'text-secondary', bg: 'bg-secondary' },
-  warning: { text: 'text-warning', bg: 'bg-warning' },
   error: { text: 'text-accent-neg', bg: 'bg-accent-neg', border: 'border-accent-neg' },
 } as const;
 

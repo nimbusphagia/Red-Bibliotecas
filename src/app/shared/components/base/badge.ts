@@ -1,30 +1,7 @@
 import { Component, computed, input } from '@angular/core';
 import type { LucideIconInput } from '@lucide/angular';
-import { accents, cn, status, type AccentLevel } from '../../theme';
+import { accents, cn, type AccentLevel } from '../../theme';
 import { Icon, type IconTone } from './icon';
-
-type Variant = 'active' | 'pending' | 'finished';
-
-const badgeVariants: Record<Variant, string> = {
-  active: status.success.text,
-  pending: status.warning.text,
-  finished: 'text-fg',
-};
-
-@Component({
-  selector: 'app-status-badge',
-  host: {
-    class: 'inline-block rounded-lg px-3 py-1 text-[13px] font-light',
-    '[class]': 'variantClass()',
-  },
-  template: `{{ text() }}`,
-})
-export class StatusBadge {
-  readonly text = input.required<string>();
-  readonly variant = input.required<Variant>();
-
-  protected readonly variantClass = computed(() => badgeVariants[this.variant()]);
-}
 
 /** Ícono de estado: con `accent` va en un círculo del acento; sin él, solo el ícono (mismo tamaño). */
 @Component({

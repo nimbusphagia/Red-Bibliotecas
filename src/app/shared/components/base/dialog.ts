@@ -90,10 +90,13 @@ export class DialogHeader {
   readonly subtitle = input<string>();
 }
 
-/** Contenido con scroll propio: el encabezado y las acciones quedan fijos. */
+/**
+ * Contenido con scroll propio: el encabezado y las acciones quedan fijos.
+ * `-m-1 p-1`: el scroll recortaría el contorno de foco de los campos.
+ */
 @Component({
   selector: 'app-dialog-body',
-  host: { class: 'flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto' },
+  host: { class: '-m-1 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-1' },
   template: `<ng-content />`,
 })
 export class DialogBody {}

@@ -1,5 +1,5 @@
 export { ActiveCounter } from './base/active-counter';
-export { StatusBadge, StatusChip, StatusIcon, StatusIndicator } from './base/badge';
+export { StatusChip, StatusIcon, StatusIndicator } from './base/badge';
 export { Button, IconButton } from './base/button';
 export {
   DialogActions,
@@ -17,3 +17,9 @@ export { FieldRow } from './form/field-row';
 export { Searchbar } from './form/searchbar';
 export { TextField } from './form/text-field';
 export { LabeledItem, type LabelWidth, type LabeledItemVariant } from './list/labeled-item';
+export { Chip, ChipGroup, type ChipShape } from './form/select/chip';
+export { ChipRow, type ChipItem } from './form/select/chip-row';
+export { MultiSearchSelect } from './form/select/multi-search-select';
+export type { Option } from './form/select/option';
+export { SearchSelect } from './form/select/search-select';
+export { SimpleSelect, type SimpleOption } from './form/select/simple-select';
