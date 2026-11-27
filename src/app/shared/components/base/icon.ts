@@ -7,7 +7,7 @@ const strokes = { sm: 1.5, md: 2.5, lg: 3, xl: 3 } as const;
 export type IconSize = keyof typeof sizes;
 export type IconStroke = keyof typeof strokes;
 /**
- * Clase de color (`text-success`, `text-accent-neg`...) o "faint" (detalles
+ * Clase de color (`text-accent-neg`, `text-accent-lg`...) o "faint" (detalles
  * tenues). Sin tono, el ícono toma el color del texto que lo rodea.
  */
 export type IconTone = 'faint' | `text-${string}`;
