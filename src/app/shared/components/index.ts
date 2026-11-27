@@ -12,3 +12,8 @@ export { Icon, type IconSize, type IconStroke, type IconTone } from './base/icon
 export { PageHeader } from './base/page-header';
 export { IN_SECTION, Panel, Surface, ToneScope } from './base/surface';
 export { Text, type TextVariant } from './base/text';
+export { FieldError } from './form/field-error';
+export { FieldRow } from './form/field-row';
+export { Searchbar } from './form/searchbar';
+export { TextField } from './form/text-field';
+export { LabeledItem, type LabelWidth, type LabeledItemVariant } from './list/labeled-item';

@@ -1,6 +1,14 @@
 import { Dialog } from '@angular/cdk/dialog';
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import {
+  form,
+  FormField,
+  readonly,
+  required,
+  submit,
+  validateStandardSchema,
+} from '@angular/forms/signals';
 import {
   LucideBookOpen,
   LucideCircleCheck,
@@ -26,22 +34,68 @@ import {
   StatusIndicator,
   Surface,
   Text,
+  FieldError,
+  FieldRow,
+  LabeledItem,
+  Searchbar,
+  TextField,
 } from '../shared/components';
+import { z } from 'zod';
+
+const shelfSchema = z.object({
+  name: z.string().min(3, 'Mínimo 3 caracteres'),
+  email: z.email('Correo no válido').or(z.literal('')),
+});
 
 @Component({
   selector: 'app-preview-dialog',
-  imports: [DialogShell, DialogHeader, DialogBody, DialogActions, Text],
+  imports: [DialogShell, DialogHeader, DialogBody, DialogActions, FieldError, FormField, TextField],
   template: `
     <app-dialog size="sm">
-      <app-dialog-header title="Nuevo estante" subtitle="Ejemplo de diálogo" />
+      <app-dialog-header title="Nuevo estante" subtitle="Signal Forms + zod" />
       <app-dialog-body>
-        <p appText="item">Escape o click afuera lo cierran. El foco vuelve al botón.</p>
+        <app-text-field label="Nombre" [formField]="form.name" helperText="Prueba con «Central»" />
+        <app-text-field
+          label="Correo"
+          type="email"
+          placeholder="Opcional"
+          [formField]="form.email"
+        />
+        <app-text-field label="Clave" type="password" [formField]="form.password" />
+        <app-field-error [message]="formError()" />
       </app-dialog-body>
-      <app-dialog-actions confirmLabel="Guardar" />
+      <app-dialog-actions
+        confirmLabel="Guardar"
+        [loading]="form().submitting()"
+        (confirmed)="save()"
+      />
     </app-dialog>
   `,
 })
-class PreviewDialog {}
+class PreviewDialog {
+  private readonly model = signal({ name: '', email: '', password: '' });
+  protected readonly form = form(this.model, (f) => {
+    validateStandardSchema(f, shelfSchema);
+    required(f.password, { message: 'Requerida' });
+  });
+  protected readonly formError = signal<string | null>(null);
+
+  protected save() {
+    void submit(this.form, async (f) => {
+      await new Promise((r) => setTimeout(r, 600));
+      // Simula un error del backend asociado a un campo.
+      if (f.name().value() === 'Central') {
+        return {
+          fieldTree: f.name,
+          kind: 'server',
+          message: 'Ya existe un estante con ese nombre',
+        };
+      }
+      this.formError.set('Guardado (simulado)');
+      return undefined;
+    });
+  }
+}
 
 /** Vitrina temporal de los componentes base. Se borra cuando haya pantallas reales. */
 @Component({
@@ -60,11 +114,16 @@ class PreviewDialog {}
     StatusIndicator,
     Surface,
     Text,
+    TextField,
+    Searchbar,
+    FieldRow,
+    LabeledItem,
+    FormField,
   ],
   host: { class: 'flex flex-col gap-6 p-8' },
   template: `
     <app-page-header title="Componentes base" subtitle="Vitrina temporal">
-      <div search appSurface inset class="px-4 py-2.5 text-faint">Buscador (pendiente)</div>
+      <app-searchbar search [(value)]="query" />
       <button app-button variant="accent" [icon]="icons.plus" (click)="openDialog()">Nuevo</button>
     </app-page-header>
 
@@ -112,6 +171,34 @@ class PreviewDialog {}
       </app-panel>
     </div>
 
+    <div class="grid gap-6 lg:grid-cols-2">
+      <app-panel title="Campos" subtitle="Sobre light">
+        <ng-container *ngTemplateOutlet="fields" />
+      </app-panel>
+      <section appSurface tone="dark" class="flex flex-col gap-4 p-5">
+        <h2 appText="section">Campos sobre dark</h2>
+        <ng-container *ngTemplateOutlet="fields" />
+      </section>
+      <app-panel title="LabeledItem">
+        <app-labeled-item label="Autor" content="Borges" labelWidth="form" />
+        <app-labeled-item label="Editorial" labelWidth="form" />
+        <app-labeled-item label="Serie" content="Ficciones" accent="lg" labelWidth="form" />
+      </app-panel>
+    </div>
+
+    <ng-template #fields>
+      <app-text-field label="Título" placeholder="Ej: El Aleph" [formField]="demo.title" />
+      <app-text-field label="Solo lectura" [formField]="demo.code" />
+      <app-field-row
+        label="Estante"
+        [value]="shelf()"
+        (opened)="shelf.set(shelf() ? null : 'A-12')"
+      />
+      <app-field-row label="Sección" error="Elige una sección" (opened)="shelf.set('B-03')" />
+      <app-searchbar [(value)]="query" placeholder="Buscar libros..." />
+      <p appText="captionXs">Búsqueda: «{{ query() }}»</p>
+    </ng-template>
+
     <ng-template #buttons>
       <div class="flex flex-wrap items-center gap-2">
         <button app-button variant="accent">Accent</button>
@@ -137,6 +224,10 @@ class PreviewDialog {}
 })
 export class UiPreview {
   private readonly dialog = inject(Dialog);
+
+  protected readonly query = signal('');
+  protected readonly shelf = signal<string | null>(null);
+  protected readonly demo = form(signal({ title: '', code: 'LIB-0042' }), (f) => readonly(f.code));
 
   protected readonly icons = {
     alert: LucideTriangleAlert,
