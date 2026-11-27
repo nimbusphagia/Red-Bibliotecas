@@ -1,0 +1,136 @@
+@import 'tailwindcss';
+
+/*
+ * Paleta. Los componentes NO eligen estos colores directo: usan los roles
+ * del tono (abajo) o los mapas de theme/tone.ts. Aquí solo se definen valores.
+ * Se borra la paleta por defecto de Tailwind para que no se cuele ninguno.
+ */
+@theme {
+  --color-*: initial;
+  --color-black: #000;
+  --color-white: #fff;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  /* Lienzo de la página (tono canvas) */
+  --color-bg: #e8e8f1;
+
+  /* light: contenedores claros */
+  --color-light-1: #fafafa; /* superficie / texto sobre dark */
+  --color-light-card: #f1f0f8; /* ItemCard y filas dentro de un contenedor light */
+  --color-light-solid: #e1e1ef;
+
+  /* dark: contenedores oscuros */
+  --color-dark-1: #222026; /* superficie / texto sobre light */
+  --color-dark-solid: #3f3e43;
+  --color-dark-2: #8d8f93; /* gris neutro: placeholders y detalles tenues */
+
+  /* acentos de intensidad creciente (theme/tone.ts → accents) */
+  --color-accent-sm: #cbdef6;
+  --color-accent-md: #aaccf7;
+  --color-accent-lg: #69a3ef;
+  --color-accent-neg: #c2405c;
+
+  --color-secondary: #8aaad4;
+  --color-success: #4e9f6b;
+  --color-warning: #d99a2b;
+
+  --font-sans: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+}
+
+/*
+ * Roles del tono. `inline` hace que la utilidad lea la variable donde se usa,
+ * así `bg-inset` dentro de un [data-tone="dark"] toma el valor de dark.
+ * Para cambiar el color de un rol, se edita SOLO la tabla de tonos de abajo.
+ */
+@theme inline {
+  --color-surface: var(--tone-surface); /* fondo del contenedor */
+  --color-inset: var(--tone-inset); /* nivel 2: campos, celdas, chips sin seleccionar */
+  --color-row: var(--tone-row); /* fondo opcional de filas de ItemList */
+  --color-card: var(--tone-card); /* fondo de ItemCard */
+  --color-value: var(--tone-value); /* valor de un LabeledItem input con contenido */
+  --color-fg: var(--tone-fg); /* texto e íconos */
+  --color-muted: var(--tone-muted); /* texto secundario (captions) */
+  --color-faint: var(--color-dark-2); /* vacíos, ayudas, placeholders */
+  --color-divider: var(--tone-divider); /* bordes y separadores */
+  --color-tag: var(--tone-tag); /* etiqueta de LabeledItem vacía */
+  --color-tag-fg: var(--tone-tag-fg);
+  --color-tag-filled: var(--tone-tag-filled);
+  --color-tag-filled-fg: var(--tone-tag-filled-fg);
+  --color-soft: var(--tone-soft); /* botón soft */
+  --color-soft-fg: var(--tone-soft-fg);
+  --color-idle: var(--tone-idle); /* chip sin seleccionar y botón selector */
+  --color-idle-fg: var(--tone-idle-fg);
+}
+
+/*
+ * Tono de la superficie donde se está dibujando (lo pone Surface):
+ * - canvas → fondo `bg`: el lienzo de la página
+ * - light  → fondo `light-1`: contenedores y secciones
+ * - dark   → fondo `dark-1`: sidebar, toolbars, diálogos oscuros
+ * Las variables se heredan, así que todo lo de adentro toma el tono.
+ */
+@layer base {
+  :root,
+  [data-tone='canvas'],
+  [data-tone='light'] {
+    --tone-fg: var(--color-dark-1);
+    --tone-muted: var(--color-dark-solid);
+    --tone-divider: var(--color-light-solid);
+    --tone-tag: var(--color-light-solid);
+    --tone-tag-fg: var(--color-dark-solid);
+    --tone-tag-filled: var(--color-accent-md);
+    --tone-tag-filled-fg: var(--color-dark-1);
+    --tone-soft-fg: var(--color-dark-1);
+    /* No es simétrico con dark a propósito: en light el chip es light-solid. */
+    --tone-idle: var(--color-light-solid);
+    --tone-idle-fg: var(--color-dark-solid);
+  }
+
+  :root,
+  [data-tone='canvas'] {
+    --tone-surface: var(--color-bg);
+    --tone-inset: var(--color-light-1);
+    --tone-row: var(--color-light-1);
+    --tone-card: var(--color-light-1);
+    --tone-value: var(--color-light-1);
+    --tone-soft: var(--color-light-1);
+  }
+
+  [data-tone='light'] {
+    --tone-surface: var(--color-light-1);
+    --tone-inset: var(--color-bg);
+    --tone-row: var(--color-light-card);
+    --tone-card: var(--color-light-card);
+    --tone-value: var(--color-bg);
+    --tone-soft: var(--color-bg);
+  }
+
+  [data-tone='dark'] {
+    --tone-surface: var(--color-dark-1);
+    --tone-inset: var(--color-dark-solid);
+    --tone-row: var(--color-dark-solid);
+    --tone-card: var(--color-dark-solid);
+    --tone-value: var(--color-bg);
+    --tone-fg: var(--color-light-1);
+    --tone-muted: var(--color-light-solid);
+    --tone-divider: var(--color-dark-solid);
+    --tone-tag: var(--color-dark-solid);
+    --tone-tag-fg: var(--color-light-1);
+    --tone-tag-filled: var(--color-dark-solid);
+    --tone-tag-filled-fg: var(--color-light-1);
+    --tone-soft: color-mix(in srgb, var(--color-dark-solid) 60%, transparent);
+    --tone-soft-fg: var(--color-light-1);
+    --tone-idle: var(--color-dark-solid);
+    --tone-idle-fg: var(--color-light-1);
+  }
+
+  /* El color del texto se reevalúa en cada superficie (si no, heredaría el del padre). */
+  [data-tone] {
+    color: var(--tone-fg);
+  }
+
+  body {
+    @apply bg-bg font-sans font-light text-fg antialiased;
+  }
+}
