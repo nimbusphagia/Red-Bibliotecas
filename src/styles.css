@@ -32,6 +32,14 @@
   --color-accent-neg: #c2405c;
 
   --font-sans: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+
+  /* Entrada de filas (CollapsibleList) */
+  --animate-fade-in: fade-in 200ms ease-out;
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
 }
 
 /*

@@ -1,6 +1,6 @@
 import { Dialog } from '@angular/cdk/dialog';
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import {
   form,
   FormField,
@@ -13,6 +13,7 @@ import {
   LucideBookOpen,
   LucideCircleCheck,
   LucideFilter,
+  LucidePencil,
   LucidePlus,
   LucideSave,
   LucideTriangleAlert,
@@ -45,6 +46,17 @@ import {
   LabeledItem,
   Searchbar,
   TextField,
+  CollapsibleList,
+  Column,
+  DetailColumns,
+  type DetailColumn,
+  InlineFilter,
+  InlineSort,
+  ItemCard,
+  ItemList,
+  ItemTemplate,
+  ListRow,
+  type Sort,
 } from '../shared/components';
 import { z } from 'zod';
 
@@ -167,6 +179,15 @@ class PreviewDialog {
     SimpleSelect,
     SearchSelect,
     MultiSearchSelect,
+    CollapsibleList,
+    Column,
+    DetailColumns,
+    InlineFilter,
+    InlineSort,
+    ItemCard,
+    ItemList,
+    ItemTemplate,
+    ListRow,
   ],
   host: { class: 'flex flex-col gap-6 p-8' },
   template: `
@@ -251,6 +272,78 @@ class PreviewDialog {
         <div class="w-60"><app-chip-row [chips]="tags" /></div>
       </app-panel>
     </div>
+
+    <h2 appText="title">Listas</h2>
+    <div class="grid gap-6 lg:grid-cols-2">
+      <div class="flex h-[460px] flex-col">
+        <app-item-list [items]="pagedBooks()" [loading]="pageLoading()" (endReached)="loadPage()">
+          <app-inline-sort toolbar [options]="sortOptions" [(sort)]="sort" />
+          <app-inline-filter toolbar [options]="filterOptions" [(value)]="filter" />
+          <ng-template appItem [appItemOf]="pagedBooks()" let-book>
+            <div appListRow>
+              <app-column variant="id" [text]="'#' + book.id" />
+              <app-column
+                variant="subtitled"
+                [text]="book.title"
+                [subtitle1]="book.author"
+                [subtitle2]="book.year + ''"
+              />
+              <app-column width="md" [text]="book.state" />
+              <app-column variant="actions" width="sm">
+                <button
+                  app-icon-button
+                  size="sm"
+                  variant="ghost"
+                  [icon]="icons.pencil"
+                  [attr.aria-label]="'Editar ' + book.title"
+                ></button>
+              </app-column>
+            </div>
+          </ng-template>
+        </app-item-list>
+      </div>
+
+      <app-panel title="Grupos plegables" subtitle="Dentro de un Panel">
+        <app-item-list inline [items]="groups" [toolbarSurface]="false">
+          <ng-template appItem [appItemOf]="groups" let-group>
+            <app-collapsible-list [groupId]="group.id" [load]="group.load">
+              <span header appText="item">{{ group.title }}</span>
+              <ng-template appItem [appItemOf]="group.load" let-book>
+                <div appListRow compact>
+                  <app-column [text]="book.title" />
+                  <app-column width="md" [text]="book.author" />
+                </div>
+              </ng-template>
+            </app-collapsible-list>
+          </ng-template>
+        </app-item-list>
+      </app-panel>
+    </div>
+
+    <app-item-list
+      inline
+      [items]="books.slice(0, 6)"
+      [columns]="3"
+      [compactColumns]="1"
+      tone="canvas"
+      [toolbarSurface]="false"
+    >
+      <ng-template appItem [appItemOf]="books" let-book>
+        <a
+          app-item-card
+          link="/dev/ui"
+          [title]="book.title"
+          [subtitle]="book.author"
+          [detail]="'Año ' + book.year"
+          [chips]="book.tags"
+        ></a>
+      </ng-template>
+    </app-item-list>
+
+    <app-detail-columns [columns]="details" />
+    <ng-template #editLead>
+      <button app-button size="sm" variant="soft" [icon]="icons.pencil">Editar</button>
+    </ng-template>
 
     <ng-template #selects>
       <app-simple-select label="Estado" [options]="states" [formField]="demo.state" />
@@ -343,11 +436,84 @@ export class UiPreview {
     'Biografía',
   ].map((label) => ({ label }));
 
+  protected readonly books = Array.from({ length: 42 }, (_, i) => ({
+    id: i + 1,
+    title:
+      ['Ficciones', 'Rayuela', 'Desolación', 'Canto general', 'Pedro Páramo'][i % 5] +
+      ' ' +
+      (i + 1),
+    author: authors[i % 5].label,
+    year: 1940 + i,
+    state: i % 3 ? 'Disponible' : 'Prestado',
+    tags: this.tags.slice(0, (i % 4) + 1),
+  }));
+  protected readonly sortOptions = [
+    { key: 'title' as const, label: 'Título', defaultDir: 'asc' as const },
+    { key: 'year' as const, label: 'Año', defaultDir: 'desc' as const },
+  ];
+  protected readonly sort = signal<Sort<'title' | 'year'>>({ by: 'title', dir: 'asc' });
+  protected readonly filterOptions = [
+    { value: 'all' as const, label: 'Todos' },
+    { value: 'out' as const, label: 'Prestados', accent: 'lg' as const },
+  ];
+  protected readonly filter = signal<'all' | 'out'>('all');
+  private readonly pages = signal(1);
+  protected readonly pageLoading = signal(false);
+  protected readonly pagedBooks = computed(() => {
+    const { by, dir } = this.sort();
+    const list = this.books
+      .filter((b) => this.filter() === 'all' || b.state === 'Prestado')
+      .sort((a, b) => (by === 'year' ? a.year - b.year : a.title.localeCompare(b.title)));
+    if (dir === 'desc') list.reverse();
+    return list.slice(0, this.pages() * 10);
+  });
+  protected loadPage() {
+    if (this.pageLoading() || this.pagedBooks().length < this.pages() * 10) return;
+    this.pageLoading.set(true);
+    setTimeout(() => {
+      this.pages.update((n) => n + 1);
+      this.pageLoading.set(false);
+    }, 400);
+  }
+  protected readonly groups = ['Argentina', 'Chile', 'México'].map((country, i) => ({
+    id: i,
+    title: country,
+    load: async () => {
+      await new Promise((r) => setTimeout(r, 300));
+      const names = authors.filter((a) => a.detail === country).map((a) => a.label);
+      return this.books.filter((b) => names.includes(b.author)).slice(0, 4);
+    },
+  }));
+  protected readonly details: DetailColumn[] = [
+    {
+      title: 'Libro',
+      columns: 2,
+      rows: [
+        { label: 'Título', content: 'Ficciones' },
+        { label: 'Autor', content: 'Borges' },
+        { label: 'Editorial', content: null },
+        { label: 'Año', content: '1944' },
+        { label: 'Serie', content: 'Sur', accent: 'lg' },
+        { label: 'ISBN', content: '978-0-00', muted: true },
+      ],
+    },
+    {
+      title: 'Ubicación',
+      fit: true,
+      tone: 'dark',
+      rows: [
+        { label: 'Estante', content: 'A-12' },
+        { label: 'Sección', content: 'Narrativa' },
+      ],
+    },
+  ];
+
   protected readonly icons = {
     alert: LucideTriangleAlert,
     book: LucideBookOpen,
     check: LucideCircleCheck,
     filter: LucideFilter,
+    pencil: LucidePencil,
     plus: LucidePlus,
     save: LucideSave,
   };
