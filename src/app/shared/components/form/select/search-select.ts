@@ -188,9 +188,10 @@ export class SearchSelect<
   private readonly query = debounced(this.search);
   protected readonly typed = computed(() => this.query().trim());
 
+  // `fetch` en params: si cambia la función (p. ej. series de otro autor), vuelve a pedir.
   protected readonly results = resource({
-    params: () => ({ search: this.query() }),
-    loader: ({ params }) => this.fetchOptions()(params.search),
+    params: () => ({ search: this.query(), fetch: this.fetchOptions() }),
+    loader: ({ params }) => params.fetch(params.search),
   });
   protected readonly options = computed(() =>
     this.results.hasValue() ? this.results.value() : [],

@@ -23,6 +23,7 @@ export { MultiSearchSelect } from './form/select/multi-search-select';
 export type { Option } from './form/select/option';
 export { SearchSelect } from './form/select/search-select';
 export { SimpleSelect, type SimpleOption } from './form/select/simple-select';
+export { Sidebar, SidebarItem, type NavItem, type Navbar } from './layout/sidebar';
 export { ContentArea, ContentWidth, injectLayoutMode, type LayoutMode } from './base/content-area';
 export { Accordion, type GroupId } from './list/accordion';
 export { CollapsibleList } from './list/collapsible-list';
